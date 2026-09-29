@@ -1,0 +1,26 @@
+# 🔵 STAGING — Push/Manual → STAGING automation → Test → Report
+name: "🔵 STAGING · Chatbot automation"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Cucumber tag expression"
+        default: "@controlcentre"
+
+concurrency:
+  group: qa-staging
+  cancel-in-progress: true
+
+jobs:
+  staging:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: staging
+      client: demoAccountStaging
+      github_environment: staging
+      tags: ${{ inputs.tags || '@controlcentre' }}
+      retries: "1"
+    secrets: inherit

@@ -1,0 +1,26 @@
+# 🟢 DEV — Push → DEV automation → Test → Report
+name: "🟢 DEV · Chatbot automation"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Cucumber tag expression"
+        default: "@controlcentre"
+
+concurrency:
+  group: qa-dev
+  cancel-in-progress: true
+
+jobs:
+  dev:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: dev
+      client: testDemoClientDev
+      github_environment: dev
+      tags: ${{ inputs.tags || '@controlcentre' }}
+      retries: "1"
+    secrets: inherit

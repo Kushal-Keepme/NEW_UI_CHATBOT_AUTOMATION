@@ -1,0 +1,17 @@
+node_modules/
+.DS_Store
+
+# Credentials — never commit. CI uses GitHub Environment secrets.
+*.local.env
+.env
+.env.*
+
+# Run artifacts
+reports/
+screenshots/
+videos/
+traces/
+logs/
+playwright-report/
+test-results/
+dist/

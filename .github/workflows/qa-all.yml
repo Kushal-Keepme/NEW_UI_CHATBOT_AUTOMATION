@@ -1,0 +1,59 @@
+# 📊 QA dashboard — runs DEV, STAGING and PRODUCTION in parallel, then one
+# combined results table (+ Slack). All three use test accounts, so they
+# run independently: a failure in one environment doesn't skip the others.
+name: "📊 QA · All environments"
+
+on:
+  schedule:
+    - cron: "30 1 * * 1-5" # weekdays 01:30 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: qa-all
+  cancel-in-progress: false
+
+jobs:
+  dev:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: dev
+      client: testDemoClientDev
+      github_environment: dev
+    secrets: inherit
+
+  staging:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: staging
+      client: demoAccountStaging
+      github_environment: staging
+    secrets: inherit
+
+  production:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: prod
+      client: demoAccountProd
+      github_environment: production
+    secrets: inherit
+
+  dashboard:
+    name: "📊 QA Automation Results"
+    needs: [dev, staging, production]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-artifacts"
+          merge-multiple: true
+      - name: Combined summary
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npx ts-node scripts/ci-summary.ts dev=testDemoClientDev staging=demoAccountStaging prod=demoAccountProd --slack --fail-on-failure

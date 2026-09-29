@@ -1,0 +1,28 @@
+# 🔴 PRODUCTION — Push/Manual → PRODUCTION automation → Test → Report
+# Production uses a test account (Demo Account), so the full chat flow runs
+# normally, same as DEV and STAGING.
+name: "🔴 PRODUCTION · Chatbot automation"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Cucumber tag expression"
+        default: "@controlcentre"
+
+concurrency:
+  group: qa-production
+  cancel-in-progress: true
+
+jobs:
+  production:
+    uses: ./.github/workflows/_chatbot-e2e.yml
+    with:
+      env: prod
+      client: demoAccountProd
+      github_environment: production
+      tags: ${{ inputs.tags || '@controlcentre' }}
+      retries: "1"
+    secrets: inherit

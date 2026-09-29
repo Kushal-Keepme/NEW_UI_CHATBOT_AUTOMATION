@@ -1,0 +1,102 @@
+# Reusable job: runs the chatbot booking flow against ONE environment.
+# Called by dev.yml / staging.yml / production.yml / qa-all.yml — the
+# environment logic lives here only once.
+name: chatbot-e2e (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: "dev | staging | prod"
+        required: true
+        type: string
+      client:
+        description: "Client config name (configs/clients/<client>.env)"
+        required: true
+        type: string
+      github_environment:
+        description: "GitHub Environment holding this env's secrets/protection rules"
+        required: true
+        type: string
+      tags:
+        description: "Cucumber tag expression"
+        required: false
+        type: string
+        default: "@controlcentre"
+      retries:
+        description: "Cucumber retries for failed scenarios (LLM replies can be flaky)"
+        required: false
+        type: string
+        default: "1"
+
+jobs:
+  e2e:
+    name: ${{ inputs.env == 'dev' && '🟢 DEV' || inputs.env == 'staging' && '🔵 STAGING' || '🔴 PRODUCTION' }} · ${{ inputs.client }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Scopes secrets (QA_EMAIL / QA_PASSWORD) and protection rules
+    # (e.g. required reviewers on "production") to this environment.
+    environment: ${{ inputs.github_environment }}
+    env:
+      CI: "true"
+      HEADLESS: "true"
+      ENV: ${{ inputs.env }}
+      CLIENT: ${{ inputs.client }}
+      TAGS: ${{ inputs.tags }}
+      RETRY_ATTEMPTS: ${{ inputs.retries }}
+      EMAIL: ${{ secrets.QA_EMAIL }}
+      PASSWORD: ${{ secrets.QA_PASSWORD }}
+      FORCE_COLOR: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check credentials are configured
+        run: |
+          if [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; then
+            echo "::error::QA_EMAIL / QA_PASSWORD secrets are missing on the '${{ inputs.github_environment }}' GitHub Environment"
+            exit 1
+          fi
+
+      - name: Run chatbot automation (${{ inputs.env }})
+        id: tests
+        continue-on-error: true
+        run: node scripts/run-smoke.ts "$TAGS"
+
+      - name: Results summary
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npx ts-node scripts/ci-summary.ts "${{ inputs.env }}=${{ inputs.client }}" --slack
+
+      - name: Upload artifacts (report, screenshots, videos, traces, logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.env }}-artifacts
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            reports/html/${{ inputs.client }}/
+            reports/cucumber/${{ inputs.client }}/
+            reports/summary/
+            screenshots/${{ inputs.client }}/
+            videos/${{ inputs.client }}/
+            traces/${{ inputs.client }}/
+            logs/
+
+      - name: Fail job if tests failed
+        if: steps.tests.outcome != 'success'
+        run: |
+          echo "::error::Chatbot automation FAILED on ${{ inputs.env }} — see the job summary and the ${{ inputs.env }}-artifacts bundle"
+          exit 1
