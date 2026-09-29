@@ -42,14 +42,17 @@ export class DashboardLoginPage extends BasePage {
         await resolveLocator(this.page, loginLocators.loginButton).click();
 
         // In the new UI (dev, and now staging/prod) the client search field
-        // lives inside the sidebar's client-switcher dropdown, which starts
-        // collapsed — expand the sidebar, then open the switcher, before it
-        // appears. The old UI shows the search field directly on the
-        // dashboard. Detect which UI rendered instead of branching on ENV.
+        // lives inside the sidebar's client-switcher dropdown. The sidebar
+        // may render collapsed (expand it first) or already expanded (seen in
+        // CI) — either way, then open the switcher to reveal the search field.
+        // The old UI shows the search field directly on the dashboard.
+        // Detect which UI rendered instead of branching on ENV.
         const searchInput = resolveLocator(this.page, loginLocators.searchClientInput);
         const expandSidebarButton = resolveLocator(this.page, loginLocators.expandSidebarButton);
+        const clientSwitcherButton = resolveLocator(this.page, loginLocators.clientSwitcherButton).first();
         try {
-            await searchInput.or(expandSidebarButton).first().waitFor({ state: 'visible', timeout: 30000 });
+            await searchInput.or(expandSidebarButton).or(clientSwitcherButton).first()
+                .waitFor({ state: 'visible', timeout: 30000 });
         } catch (err) {
             // A rejected login just leaves the login form on screen with no
             // obvious error, so say so explicitly instead of a bare timeout.
@@ -70,9 +73,13 @@ export class DashboardLoginPage extends BasePage {
 
         this.usesClientSwitcher = !(await searchInput.isVisible());
         if (this.usesClientSwitcher) {
-            logger.info('New UI detected — expanding sidebar and opening client switcher to reveal the search field.');
-            await expandSidebarButton.click();
-            await resolveLocator(this.page, loginLocators.clientSwitcherButton).first().click();
+            if (await expandSidebarButton.isVisible()) {
+                logger.info('New UI detected (sidebar collapsed) — expanding sidebar, then opening the client switcher.');
+                await expandSidebarButton.click();
+            } else {
+                logger.info('New UI detected (sidebar already expanded) — opening the client switcher.');
+            }
+            await clientSwitcherButton.click();
         }
 
         // Login can bounce through an intermediate /login redirect before the

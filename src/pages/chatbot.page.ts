@@ -70,8 +70,9 @@ export class ChatbotPage extends BasePage {
 
         try {
             // Ensure input is visible and clear any existing content
-            await input.waitFor({ state: 'visible', timeout: 5000 });
-            await input.click({ timeout: 2000 });
+            await input.waitFor({ state: 'visible', timeout: 30000 });
+            // The input is disabled while the bot is still replying — wait for it
+            await input.click({ timeout: 30000 });
             await input.fill('');
 
             // Type the message with controlled delay

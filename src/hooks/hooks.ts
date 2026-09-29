@@ -81,7 +81,9 @@ Before({ timeout: 30000 }, async () => {
   browser = await chromium.launch({ headless: ENV.headless, args: ['--start-maximized'] });
 
   context = await browser.newContext({
-    viewport: null,
+    // Headed: use the maximized window. Headless (CI) has no window to
+    // maximize, so fix the size to match a typical desktop.
+    viewport: ENV.headless ? { width: 1920, height: 1080 } : null,
     recordVideo: { dir: VIDEO_DIR, size: { width: 1920, height: 1080 } },
   });
 
