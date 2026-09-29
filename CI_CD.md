@@ -112,14 +112,16 @@ Retries: `1` everywhere (LLM replies are nondeterministic).
 
 **Settings → Environments → New environment**, create three:
 
-| GitHub Environment | Secrets |
-|---|---|
-| `dev` | `QA_EMAIL`, `QA_PASSWORD` (DEV login) |
-| `staging` | `QA_EMAIL`, `QA_PASSWORD` (STAGING login) |
-| `production` | `QA_EMAIL`, `QA_PASSWORD` (PRODUCTION login) |
+| GitHub Environment | Secrets | Protection rules |
+|---|---|---|
+| `dev` | `QA_EMAIL`, `QA_PASSWORD` (DEV login) | none |
+| `staging` | `QA_EMAIL`, `QA_PASSWORD` (STAGING login) | none |
+| `production` | `QA_EMAIL`, `QA_PASSWORD` (PRODUCTION login) | **Required reviewers**, `main` only |
 
-No protection rules are needed. If **Required reviewers** is set on an
-environment, every run on it waits for manual approval.
+Every PRODUCTION run (on push, manual or nightly) waits with
+**"Waiting for review"** until a required reviewer clicks
+**Review deployments → Approve and deploy** on the run page. DEV and STAGING
+start immediately. The flow itself is the same full chat flow in all three.
 
 Optional repository secret: `SLACK_WEBHOOK_URL` (Slack → Apps → Incoming
 Webhooks). Without it the Slack step logs a warning and is skipped.
