@@ -47,19 +47,49 @@ jobs:
       EMAIL: ${{ secrets.QA_EMAIL }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
       FORCE_COLOR: "1"
+      # Fixed cache locations, so the folders we cache are exactly the ones
+      # yarn and Playwright write to (setup-node's built-in `cache: yarn`
+      # guessed a different folder → "Path Validation Error" on save).
+      YARN_CACHE_FOLDER: ${{ github.workspace }}/.cache/yarn
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: yarn
+
+      - name: Prepare cache folders
+        run: mkdir -p "$YARN_CACHE_FOLDER" "$PLAYWRIGHT_BROWSERS_PATH"
+
+      - name: Cache yarn packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.YARN_CACHE_FOLDER }}
+          key: yarn-${{ runner.os }}-node20-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-${{ runner.os }}-node20-
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Install Chromium
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+
+      - name: Install Chromium (cache miss)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - name: Check credentials are configured
         run: |
@@ -84,7 +114,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.env }}-artifacts
-          retention-days: 14
+          # No retention-days: use the repository's own limit (currently 3
+          # days) instead of warning that a longer value was capped.
           if-no-files-found: warn
           path: |
             reports/html/${{ inputs.client }}/

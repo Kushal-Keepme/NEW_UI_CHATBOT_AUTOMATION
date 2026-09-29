@@ -14,6 +14,7 @@
     "industry": "health_fitness"
   },
   "greeting": {
+    "expectedMessage": "I'm Flex",
     "expectedKeywords": [
       "hello",
       "welcome",
