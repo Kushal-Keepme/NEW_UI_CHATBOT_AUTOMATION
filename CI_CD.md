@@ -20,9 +20,8 @@ flow, running against three environments locally and in GitHub Actions.
 ```bash
 yarn install
 yarn browsers:install          # Chromium (+ headless shell)
-cp configs/env/local.env.example configs/env/base.local.env   # dev + staging login
-cp configs/env/local.env.example configs/env/prod.local.env   # production login
-# fill EMAIL= / PASSWORD= in both files (they are gitignored)
+cp configs/env/local.env.example configs/env/base.local.env   # login for DEV, STAGING and PRODUCTION
+# fill EMAIL= / PASSWORD= (the file is gitignored)
 ```
 
 ## 2. Local commands
@@ -95,7 +94,9 @@ Every job:
    actor, suite, browser, links to the run and artifacts) and prints a colour-coded
    banner in the log
 4. uploads **`<env>-report`** (HTML report + results, ~3 MB) on every run, and
-   **`<env>-debug`** (screenshots, video, trace, logs) **only when tests failed**.
+   **only when tests failed**: **`<env>-screenshots`** (failure screenshots, small) and
+   **`<env>-debug`** (video, trace, logs). The failure screenshot is also embedded in the
+   HTML report under the failed scenario.
    Retention follows the repository limit.
 5. fails the job if the tests failed
 
@@ -154,8 +155,9 @@ Teams/email can reuse `reports/summary/<env>.json`, written on every run.
 
 1. Open the run → **Summary** tab: failed step + first line of the error.
 2. Download **`<env>-report`** → open `reports/html/<client>/index.html`.
-3. Download **`<env>-debug`** → `screenshots/<client>/*.png` shows the page at the moment of failure,
-   `videos/<client>/` the whole run.
+3. The failure screenshot is in the report (failed scenario → **After** section), or
+   download **`<env>-screenshots`**. For the whole run, download **`<env>-debug`** →
+   `videos/<client>/`.
 4. Step through it: `npx playwright show-trace traces/<client>/trace-*.zip`
    (actions, network, console, errors). For DOM snapshots + screenshots per
    action, re-run with `TRACE_FULL=true` (traces get much larger).

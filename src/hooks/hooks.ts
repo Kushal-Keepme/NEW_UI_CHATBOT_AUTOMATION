@@ -113,8 +113,10 @@ After({ timeout: 120000 }, async function (scenario) {
         SCREENSHOT_DIR,
         `screenshot-${timestamp}.png`
       );
-      await page.screenshot({ path: screenshotPath, fullPage: true });
+      const screenshot = await page.screenshot({ path: screenshotPath, fullPage: true });
       logger.error(`Screenshot saved: ${screenshotPath}`);
+      // Embed it in the HTML report under the failed scenario
+      await this.attach(screenshot, 'image/png');
 
       const tracePath = path.join(TRACE_DIR, `trace-${timestamp}.zip`);
       await context.tracing.stop({ path: tracePath });

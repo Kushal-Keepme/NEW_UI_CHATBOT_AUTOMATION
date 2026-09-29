@@ -35,9 +35,8 @@ yarn install
 yarn browsers:install
 
 # credentials (gitignored — never commit them)
-cp configs/env/local.env.example configs/env/base.local.env   # DEV + STAGING login
-cp configs/env/local.env.example configs/env/prod.local.env   # PRODUCTION login
-# fill in EMAIL= and PASSWORD= in both files
+cp configs/env/local.env.example configs/env/base.local.env   # login for DEV, STAGING and PRODUCTION
+# fill in EMAIL= and PASSWORD=
 
 yarn test:dev
 ```
@@ -58,8 +57,7 @@ configs/
 │   ├── agentdev.env          DEV login URL
 │   ├── staging.env           STAGING login URL
 │   ├── prod.env              PRODUCTION login URL
-│   ├── base.local.env        DEV/STAGING credentials   (gitignored)
-│   ├── prod.local.env        PRODUCTION credentials    (gitignored)
+│   ├── base.local.env        login for all envs        (gitignored)
 │   ├── local.env.example     template for *.local.env
 │   └── env.helper.ts         loads + merges all of the above → ENV object
 ├── clients/
@@ -90,7 +88,7 @@ scripts/
 Everything that differs between environments is config, not code:
 
 - **Login URL**: `configs/env/<env>.env`
-- **Credentials**: `configs/env/<env>.local.env`, falling back to `base.local.env`. In CI they come from GitHub Environment secrets.
+- **Credentials**: one login for all three environments in `configs/env/base.local.env` (an optional `<env>.local.env` overrides it for one env). In CI they come from GitHub Environment secrets.
 - **Client name to search, and the agent training link**: `configs/clients/<client>.env`
 - **Conversation, greeting, keywords**: `src/fixtures/<client>.json`
 

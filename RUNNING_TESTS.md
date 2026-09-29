@@ -15,19 +15,17 @@ yarn browsers:install        # Chromium + headless shell
 
 ## 2. Credentials
 
-Credentials are **not** in the repo. Create two gitignored files from the template:
+Credentials are **not** in the repo. The same login is used for DEV, STAGING and PRODUCTION. Create one gitignored file from the template:
 
 ```bash
 cp configs/env/local.env.example configs/env/base.local.env
-cp configs/env/local.env.example configs/env/prod.local.env
 ```
 
 | File | Used by | Contents |
 |---|---|---|
-| `configs/env/base.local.env` | DEV and STAGING | `EMAIL=` / `PASSWORD=` of the QA dashboard login |
-| `configs/env/prod.local.env` | PRODUCTION | `EMAIL=` / `PASSWORD=` of the production login |
+| `configs/env/base.local.env` | DEV, STAGING and PRODUCTION | `EMAIL=` / `PASSWORD=` of the Control Centre login |
 
-A per-environment file (`<env>.local.env`) wins over `base.local.env`. `EMAIL` / `PASSWORD` set in the shell or CI win over both. If nothing is set, the run stops immediately with an error saying which file to create.
+If one environment ever needs a different login, add `configs/env/<env>.local.env`; it wins over `base.local.env`. `EMAIL` / `PASSWORD` set in the shell or CI win over both. If nothing is set, the run stops immediately with an error saying which file to create.
 
 ## 3. Running
 

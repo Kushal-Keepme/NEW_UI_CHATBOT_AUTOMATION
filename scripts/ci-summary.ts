@@ -165,10 +165,10 @@ function markdown(results: EnvResult[]): string {
     out.push(`| Summary generated | ${new Date().toISOString()} |`);
     if (url) {
         out.push(`| Run | [GitHub Actions run](${url}) |`);
-        out.push(`| Artifacts | [\`<env>-report\` = HTML report · \`<env>-debug\` = screenshots, video, trace, logs (failures only)](${url}#artifacts) |`);
+        out.push(`| Artifacts | [\`<env>-report\` = HTML report · \`<env>-screenshots\` = failure screenshots · \`<env>-debug\` = video, trace, logs (failures only)](${url}#artifacts) |`);
     }
     out.push('');
-    out.push('<sub>See the result: download `<env>-report` → open `reports/html/<client>/index.html`. Debug a failure: download `<env>-debug`; ' +
+    out.push('<sub>See the result: download `<env>-report` → open `reports/html/<client>/index.html`. Failure screenshot: in the report or `<env>-screenshots`. Video/trace: `<env>-debug`; ' +
         'traces: `npx playwright show-trace traces/<client>/trace-*.zip`.</sub>', '');
     return out.join('\n');
 }

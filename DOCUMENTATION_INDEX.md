@@ -13,7 +13,7 @@
 | I need to change… | File |
 |---|---|
 | a login URL | `configs/env/<env>.env` |
-| login credentials (local) | `configs/env/base.local.env`, `configs/env/prod.local.env` (gitignored) |
+| login credentials (local) | `configs/env/base.local.env` (gitignored, used by all envs) |
 | login credentials (CI) | GitHub → Settings → Environments → `dev` / `staging` / `production` → `QA_EMAIL`, `QA_PASSWORD` |
 | the client name searched / agent training link | `configs/clients/<client>.env` |
 | the conversation, greeting or confirmation words | `src/fixtures/<client>.json` |

@@ -15,7 +15,7 @@ Start with the failure screenshot (`screenshots/<client>/`) and the trace (`npx 
 The `*.local.env` credentials file is missing. See [RUNNING_TESTS.md §2](RUNNING_TESTS.md#2-credentials). In CI: add `QA_EMAIL` / `QA_PASSWORD` to that GitHub Environment.
 
 **Stuck on the login page, then timeout waiting for `Search clients...` / `Expand sidebar`**
-The credentials were rejected: no error is shown, the page just stays on login. Check that the account works on that environment. PRODUCTION uses a different login from DEV/STAGING (`prod.local.env`).
+The credentials were rejected: no error is shown, the page just stays on login. Check that the account works on that environment (all three use the login in `base.local.env` / the `QA_EMAIL` secret).
 
 **`strict mode violation: … resolved to 2 elements`** when selecting the client
 Two clients match the name. The dropdown selector matches the name exactly, so check that `CLIENT_NAME` in `configs/clients/<client>.env` is the full, exact name shown in the switcher.
@@ -60,4 +60,4 @@ Add both secrets to that environment. Repository-level secrets with the same nam
 `SLACK_WEBHOOK_URL` isn't set; the log shows a `WARNING` line. It's optional.
 
 **Debug a CI failure locally**
-Download `<env>-report` from the run and open `reports/html/<client>/index.html`; for screenshots, video and trace download `<env>-debug` (only present when tests failed), then reproduce with the headed command (e.g. `yarn test:staging`) to watch it happen.
+Download `<env>-report` from the run and open `reports/html/<client>/index.html`; the failure screenshot is in the report and in `<env>-screenshots`; video and trace are in `<env>-debug` (both only present when tests failed), then reproduce with the headed command (e.g. `yarn test:staging`) to watch it happen.
