@@ -165,10 +165,10 @@ function markdown(results: EnvResult[]): string {
     out.push(`| Summary generated | ${new Date().toISOString()} |`);
     if (url) {
         out.push(`| Run | [GitHub Actions run](${url}) |`);
-        out.push(`| Artifacts | [HTML report, screenshots, videos, traces, logs](${url}#artifacts) |`);
+        out.push(`| Artifacts | [\`<env>-report\` = HTML report · \`<env>-debug\` = screenshots, video, trace, logs (failures only)](${url}#artifacts) |`);
     }
     out.push('');
-    out.push('<sub>Debug a failure: download the `<env>-artifacts` bundle → open `reports/html/<client>/index.html`; ' +
+    out.push('<sub>See the result: download `<env>-report` → open `reports/html/<client>/index.html`. Debug a failure: download `<env>-debug`; ' +
         'traces: `npx playwright show-trace traces/<client>/trace-*.zip`.</sub>', '');
     return out.join('\n');
 }
@@ -184,7 +184,7 @@ function slackText(results: EnvResult[]): string {
         for (const f of r.failures) lines.push(`❌ ${f.scenario} → ${f.step}`);
         lines.push('');
     }
-    if (url) lines.push(`🔗 <${url}|GitHub Actions run>   🔗 <${url}#artifacts|Report & artifacts>`);
+    if (url) lines.push(`🔗 <${url}|GitHub Actions run>   🔗 <${url}#artifacts|HTML report>`);
     return lines.join('\n');
 }
 

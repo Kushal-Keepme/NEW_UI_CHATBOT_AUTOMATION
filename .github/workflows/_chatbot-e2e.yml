@@ -109,18 +109,30 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npx ts-node scripts/ci-summary.ts "${{ inputs.env }}=${{ inputs.client }}" --slack
 
-      - name: Upload artifacts (report, screenshots, videos, traces, logs)
+      # Small, always uploaded: the HTML report + raw results (~3 MB).
+      # This is the one to download to see the result.
+      # (No retention-days: the repository's own limit applies.)
+      - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.env }}-artifacts
-          # No retention-days: use the repository's own limit (currently 3
-          # days) instead of warning that a longer value was capped.
+          name: ${{ inputs.env }}-report
           if-no-files-found: warn
           path: |
             reports/html/${{ inputs.client }}/
             reports/cucumber/${{ inputs.client }}/
             reports/summary/
+
+      # Large, only when tests failed: screenshots, videos, traces, logs.
+      # Already-compressed files (zip/webm/mp4/png), so skip re-compressing.
+      - name: Upload debug files (failures only)
+        if: always() && steps.tests.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.env }}-debug
+          if-no-files-found: ignore
+          compression-level: 0
+          path: |
             screenshots/${{ inputs.client }}/
             videos/${{ inputs.client }}/
             traces/${{ inputs.client }}/
@@ -129,5 +141,5 @@ jobs:
       - name: Fail job if tests failed
         if: steps.tests.outcome != 'success'
         run: |
-          echo "::error::Chatbot automation FAILED on ${{ inputs.env }} — see the job summary and the ${{ inputs.env }}-artifacts bundle"
+          echo "::error::Chatbot automation FAILED on ${{ inputs.env }} — see the job summary, the ${{ inputs.env }}-report artifact (HTML report) and ${{ inputs.env }}-debug (screenshots, video, trace)"
           exit 1

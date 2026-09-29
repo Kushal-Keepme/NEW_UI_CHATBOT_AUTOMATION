@@ -60,4 +60,4 @@ Add both secrets to that environment. Repository-level secrets with the same nam
 `SLACK_WEBHOOK_URL` isn't set; the log shows a `WARNING` line. It's optional.
 
 **Debug a CI failure locally**
-Download the `<env>-artifacts` bundle from the run, open `reports/html/<client>/index.html` and the trace, then reproduce with the headed command (e.g. `yarn test:staging`) to watch it happen.
+Download `<env>-report` from the run and open `reports/html/<client>/index.html`; for screenshots, video and trace download `<env>-debug` (only present when tests failed), then reproduce with the headed command (e.g. `yarn test:staging`) to watch it happen.

@@ -87,8 +87,13 @@ Before({ timeout: 30000 }, async () => {
     recordVideo: { dir: VIDEO_DIR, size: { width: 1920, height: 1080 } },
   });
 
-  // Trace every scenario, but only keep it when the scenario fails
-  await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+  // Trace every scenario, but only keep it when the scenario fails.
+  // Default trace = actions, network, console, errors (a few MB). Per-action
+  // screenshots + DOM snapshots made a 3-minute chat trace ~600 MB because
+  // the bot-reply polling records thousands of actions; the video and the
+  // failure screenshot already show what happened. TRACE_FULL=true adds them.
+  const fullTrace = process.env.TRACE_FULL === 'true';
+  await context.tracing.start({ screenshots: fullTrace, snapshots: fullTrace, sources: true });
 
   page = await context.newPage();
 
@@ -99,8 +104,11 @@ Before({ timeout: 30000 }, async () => {
 After({ timeout: 120000 }, async function (scenario) {
   try {
     const timestamp = Date.now();
+    const failed = scenario.result?.status === 'FAILED';
+    // Known before closing; the file is finalised when the context closes
+    const videoPath = await page?.video()?.path().catch(() => undefined);
 
-    if (scenario.result?.status === 'FAILED') {
+    if (failed) {
       const screenshotPath = path.join(
         SCREENSHOT_DIR,
         `screenshot-${timestamp}.png`
@@ -119,12 +127,11 @@ After({ timeout: 120000 }, async function (scenario) {
     if (page && !page.isClosed()) await page.close();
     if (context) await context.close();
 
-    // Convert videos
-    const files = await fs.readdir(VIDEO_DIR);
-    for (const file of files.filter(f => f.endsWith('.webm'))) {
-      const webm = path.join(VIDEO_DIR, file);
-      const mp4 = path.join(VIDEO_DIR, file.replace('.webm', '.mp4'));
-      await convertWebmToMp4(webm, mp4);
+    // Keep video only for failed scenarios; passed ones aren't needed
+    if (videoPath && !failed) {
+      await fs.unlink(videoPath).catch(() => undefined);
+    } else if (videoPath) {
+      await convertWebmToMp4(videoPath, videoPath.replace(/\.webm$/, '.mp4'));
     }
 
     // Close browser ONLY if not debugging

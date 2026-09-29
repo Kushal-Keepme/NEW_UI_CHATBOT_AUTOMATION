@@ -94,7 +94,9 @@ Every job:
 3. writes a `$GITHUB_STEP_SUMMARY` dashboard (table, failed tests, branch, commit,
    actor, suite, browser, links to the run and artifacts) and prints a colour-coded
    banner in the log
-4. uploads `<env>-artifacts` (HTML report, screenshots, videos, traces, logs) for 14 days
+4. uploads **`<env>-report`** (HTML report + results, ~3 MB) on every run, and
+   **`<env>-debug`** (screenshots, video, trace, logs) **only when tests failed**.
+   Retention follows the repository limit.
 5. fails the job if the tests failed
 
 Error text in summaries/Slack is **redacted** for anything that looks like a
@@ -151,10 +153,12 @@ Teams/email can reuse `reports/summary/<env>.json`, written on every run.
 ## 8. Debugging a failed run
 
 1. Open the run → **Summary** tab: failed step + first line of the error.
-2. Download `<env>-artifacts` → open `reports/html/<client>/index.html`.
-3. Look at `screenshots/<client>/*.png` for the page at the moment of failure.
+2. Download **`<env>-report`** → open `reports/html/<client>/index.html`.
+3. Download **`<env>-debug`** → `screenshots/<client>/*.png` shows the page at the moment of failure,
+   `videos/<client>/` the whole run.
 4. Step through it: `npx playwright show-trace traces/<client>/trace-*.zip`
-   (DOM snapshots, network, console, each action).
+   (actions, network, console, errors). For DOM snapshots + screenshots per
+   action, re-run with `TRACE_FULL=true` (traces get much larger).
 5. Reproduce locally with a visible browser: `yarn test:staging`
    (or `KEEP_BROWSER_OPEN=true yarn test:staging`).
 
