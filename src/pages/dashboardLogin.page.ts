@@ -48,7 +48,19 @@ export class DashboardLoginPage extends BasePage {
         // dashboard. Detect which UI rendered instead of branching on ENV.
         const searchInput = resolveLocator(this.page, loginLocators.searchClientInput);
         const expandSidebarButton = resolveLocator(this.page, loginLocators.expandSidebarButton);
-        await searchInput.or(expandSidebarButton).first().waitFor({ state: 'visible', timeout: 30000 });
+        try {
+            await searchInput.or(expandSidebarButton).first().waitFor({ state: 'visible', timeout: 30000 });
+        } catch (err) {
+            // A rejected login just leaves the login form on screen with no
+            // obvious error, so say so explicitly instead of a bare timeout.
+            const stillOnLogin = await resolveLocator(this.page, loginLocators.passwordInput).isVisible().catch(() => false);
+            if (stillOnLogin) {
+                throw new Error(
+                    `Login failed on ${ENV.env} (${ENV.baseUrl}) for ${ENV.email}: still on the login page 30s after Sign In. Check the credentials (CI: QA_EMAIL / QA_PASSWORD secrets on this GitHub Environment).`
+                );
+            }
+            throw err;
+        }
 
         this.usesClientSwitcher = !(await searchInput.isVisible());
         if (this.usesClientSwitcher) {

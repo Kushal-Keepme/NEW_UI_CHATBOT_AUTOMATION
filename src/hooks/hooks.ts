@@ -94,7 +94,7 @@ Before({ timeout: 30000 }, async () => {
   await apiRequest.init();
 });
 
-After({ timeout: 30000 }, async function (scenario) {
+After({ timeout: 120000 }, async function (scenario) {
   try {
     const timestamp = Date.now();
 
