@@ -108,6 +108,7 @@ Everything that differs between environments is config, not code:
 | What | Where |
 |---|---|
 | HTML report | `reports/html/<client>/index.html` |
+| Chatbot conversation (every test input + bot reply, per attempt) | `reports/result/<client>/result.html` |
 | Raw results | `reports/cucumber/<client>/<client>.json` |
 | Screenshot (failures) | `screenshots/<client>/` |
 | Playwright trace (failures) | `traces/<client>/trace-*.zip`, open with `npx playwright show-trace <file>` |

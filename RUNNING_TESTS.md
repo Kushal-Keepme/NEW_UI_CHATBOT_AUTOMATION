@@ -99,6 +99,7 @@ Mismatched keywords on intermediate steps are only logged (`[KEYWORD MISMATCH]`)
 
 ```
 reports/html/<client>/index.html        HTML report
+reports/result/<client>/result.html     full chatbot conversation per attempt (test inputs + bot replies)
 reports/cucumber/<client>/<client>.json raw Cucumber results
 reports/summary/<env>.json              summary for Slack/Teams (written by `yarn summary` / CI)
 screenshots/<client>/                   full-page screenshot of each failure

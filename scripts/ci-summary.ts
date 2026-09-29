@@ -18,6 +18,7 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { redact } from '../src/utils/redact';
 
 type EnvKey = 'dev' | 'staging' | 'prod';
 type Status = 'PASS' | 'FAIL' | 'NO RESULTS';
@@ -47,13 +48,6 @@ const STATUS_ANSI: Record<Status, string> = { PASS: '\x1b[32m', FAIL: '\x1b[31m'
 const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';
 
-// Bot replies end up in error messages; never publish anything that looks
-// like a credential (e.g. a connection string pasted into a bot greeting).
-function redact(text: string): string {
-    return text
-        .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s:@/]+:[^\s@/]+@[^\s"'<>]+/gi, '[REDACTED CONNECTION STRING]')
-        .replace(/\b(password|passwd|pwd|secret|token|api[_-]?key)\b\s*[:=]\s*\S+/gi, '$1=[REDACTED]');
-}
 
 function formatDuration(ms: number): string {
     const totalSeconds = Math.round(ms / 1000);

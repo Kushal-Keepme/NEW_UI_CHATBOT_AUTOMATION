@@ -22,7 +22,7 @@ yarn report:chatbot:prod
 yarn summary                   # PASS/FAIL table of the last run of all 3 envs in the terminal
 ```
 
-Report files: `reports/html/<client>/index.html`
+Report files: `reports/html/<client>/index.html` · conversation: `reports/result/<client>/result.html`
 (`testDemoClientDev`, `demoAccountStaging`, `demoAccountProd`)
 
 ## Debugging

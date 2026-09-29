@@ -8,6 +8,7 @@ import { ENV } from '../../configs/env/env.helper';
 import { logger } from '../utils/logger';
 import { generate } from 'multiple-cucumber-html-reporter';
 import { ApiRequest } from '../api/apiRequest';
+import { captureConversation, recordAttempt, resetConversationReport, transcriptText } from '../support/conversation.report';
 
 const execAsync = promisify(exec);
 
@@ -18,6 +19,7 @@ export let apiRequest: ApiRequest;
 
 // Flags
 const KEEP_BROWSER_OPEN = process.env.KEEP_BROWSER_OPEN === 'true';
+let attemptStartedAt = new Date().toISOString();
 
 // Artifact folders
 const CLIENT = process.env.CLIENT || 'report';
@@ -74,10 +76,12 @@ BeforeAll(async () => {
     fs.rm(htmlReportDir, { recursive: true, force: true }).then(() => fs.mkdir(htmlReportDir, { recursive: true })),
   ]);
 
+  resetConversationReport(client);
   logger.info(`Artifacts cleaned for client: ${client}`);
 });
 
 Before({ timeout: 30000 }, async () => {
+  attemptStartedAt = new Date().toISOString();
   browser = await chromium.launch({ headless: ENV.headless, args: ['--start-maximized'] });
 
   context = await browser.newContext({
@@ -107,6 +111,21 @@ After({ timeout: 120000 }, async function (scenario) {
     const failed = scenario.result?.status === 'FAILED';
     // Known before closing; the file is finalised when the context closes
     const videoPath = await page?.video()?.path().catch(() => undefined);
+
+    // Full chatbot conversation of this attempt → result.html + report attachment
+    const messages = page && !page.isClosed() ? await captureConversation(page) : [];
+    recordAttempt(
+      { env: ENV.env, client: CLIENT, clientName: ENV.clientName, agentTrainingUrl: ENV.agentTrainingUrl },
+      {
+        scenario: scenario.pickle.name,
+        status: scenario.result?.status ?? 'UNKNOWN',
+        error: scenario.result?.message?.split('\n').slice(0, 6).join('\n'),
+        startedAt: attemptStartedAt,
+        finishedAt: new Date().toISOString(),
+        messages,
+      }
+    );
+    await this.attach(`Chatbot conversation\n\n${transcriptText(messages)}`, 'text/plain');
 
     if (failed) {
       const screenshotPath = path.join(

@@ -93,7 +93,10 @@ Every job:
 3. writes a `$GITHUB_STEP_SUMMARY` dashboard (table, failed tests, branch, commit,
    actor, suite, browser, links to the run and artifacts) and prints a colour-coded
    banner in the log
-4. uploads **`<env>-report`** (HTML report + results, ~3 MB) on every run, and
+4. uploads **`<env>-report`** on every run (~1 MB): the HTML report
+   (`reports/html/<client>/index.html`), the chatbot conversation
+   (`reports/result/<client>/result.html` — every test input and bot reply, per
+   attempt) and the raw results; and
    **only when tests failed**: **`<env>-screenshots`** (failure screenshots, small) and
    **`<env>-debug`** (video, trace, logs). The failure screenshot is also embedded in the
    HTML report under the failed scenario.
@@ -154,7 +157,8 @@ Teams/email can reuse `reports/summary/<env>.json`, written on every run.
 ## 8. Debugging a failed run
 
 1. Open the run → **Summary** tab: failed step + first line of the error.
-2. Download **`<env>-report`** → open `reports/html/<client>/index.html`.
+2. Download **`<env>-report`** → open `reports/html/<client>/index.html`, and
+   `reports/result/<client>/result.html` to read the whole chat the bot had.
 3. The failure screenshot is in the report (failed scenario → **After** section), or
    download **`<env>-screenshots`**. For the whole run, download **`<env>-debug`** →
    `videos/<client>/`.

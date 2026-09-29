@@ -120,6 +120,7 @@ jobs:
           if-no-files-found: warn
           path: |
             reports/html/${{ inputs.client }}/
+            reports/result/${{ inputs.client }}/
             reports/cucumber/${{ inputs.client }}/
             reports/summary/
 
