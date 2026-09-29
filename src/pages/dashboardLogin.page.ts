@@ -54,12 +54,18 @@ export class DashboardLoginPage extends BasePage {
             // A rejected login just leaves the login form on screen with no
             // obvious error, so say so explicitly instead of a bare timeout.
             const stillOnLogin = await resolveLocator(this.page, loginLocators.passwordInput).isVisible().catch(() => false);
+            // Visible page text helps tell a wrong password apart from bot
+            // protection / an access-denied page (login pages hold no secrets).
+            const pageText = (await this.page.locator('body').innerText().catch(() => ''))
+                .replace(/\s+/g, ' ').trim().slice(0, 300);
+            const where = `url=${this.page.url()} title="${await this.page.title().catch(() => '')}" page="${pageText}"`;
             if (stillOnLogin) {
                 throw new Error(
-                    `Login failed on ${ENV.env} (${ENV.baseUrl}) for ${ENV.email}: still on the login page 30s after Sign In. Check the credentials (CI: QA_EMAIL / QA_PASSWORD secrets on this GitHub Environment).`
+                    `Login failed on ${ENV.env} for ${ENV.email}: still on the login page 30s after Sign In (${where}). ` +
+                    `Check the credentials (CI: QA_EMAIL / QA_PASSWORD secrets on this GitHub Environment).`
                 );
             }
-            throw err;
+            throw new Error(`Dashboard did not load after login on ${ENV.env} (${where}): ${(err as Error).message.split('\n')[0]}`);
         }
 
         this.usesClientSwitcher = !(await searchInput.isVisible());

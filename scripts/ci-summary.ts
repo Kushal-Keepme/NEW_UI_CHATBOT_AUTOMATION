@@ -208,6 +208,17 @@ async function main(): Promise<void> {
 
     results.forEach(printConsole);
 
+    // Surface each failure as a GitHub annotation so it shows on the run page
+    // (and via the API) without opening the logs. Error text is already redacted.
+    if (process.env.GITHUB_ACTIONS) {
+        for (const r of results) {
+            for (const f of r.failures) {
+                const msg = `${f.step}: ${f.error}`.replace(/%/g, '%25').replace(/\r?\n/g, ' ');
+                console.log(`::error title=${ENV_META[r.env].label} · ${f.scenario}::${msg}`);
+            }
+        }
+    }
+
     const outDir = path.join(process.cwd(), 'reports', 'summary');
     fs.mkdirSync(outDir, { recursive: true });
     for (const r of results) fs.writeFileSync(path.join(outDir, `${r.env}.json`), JSON.stringify(r, null, 2));
