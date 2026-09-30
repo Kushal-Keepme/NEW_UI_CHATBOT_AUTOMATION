@@ -1,4 +1,4 @@
-# 🔵 STAGING — Push/Manual → STAGING automation → Test → Report
+
 name: "🔵 STAGING · Chatbot automation"
 
 on:
