@@ -1,6 +1,4 @@
-# 🔴 PRODUCTION — Push/Manual → PRODUCTION automation → Test → Report
-# Production uses a test account (Demo Account), so the full chat flow runs
-# normally, same as DEV and STAGING.
+
 name: "🔴 PRODUCTION · Chatbot automation"
 
 on:
