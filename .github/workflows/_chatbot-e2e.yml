@@ -1,6 +1,3 @@
-# Reusable job: runs the chatbot booking flow against ONE environment.
-# Called by dev.yml / staging.yml / production.yml / qa-all.yml — the
-# environment logic lives here only once.
 name: chatbot-e2e (reusable)
 
 on:
